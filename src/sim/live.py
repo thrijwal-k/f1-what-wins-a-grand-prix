@@ -128,7 +128,7 @@ def next_race(con, now: datetime | None = None) -> dict | None:
     rows = con.execute("""
         SELECT r.race_id FROM races r
         WHERE NOT EXISTS (SELECT 1 FROM results x WHERE x.race_id = r.race_id) AND r.race_date >= ?
-        ORDER BY r.race_id LIMIT 1""", [(now - pd.Timedelta(days=1)).date().isoformat()]).fetchall()
+        ORDER BY r.race_id LIMIT 1""", [(now.date() - __import__("datetime").timedelta(days=1)).isoformat()]).fetchall()
     if not rows:
         return None
     info = race_info(con, rows[0][0])
