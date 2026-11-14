@@ -1,0 +1,40 @@
+name: update-data
+
+# Runs the full pipeline (download new races, rebuild, check) every Monday, after
+# the race weekend. It does nothing until you create a repository variable called
+# ENABLE_UPDATE with the value true (Settings > Secrets and variables > Actions >
+# Variables), because the first run downloads everything from 1950.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  update:
+    if: ${{ vars.ENABLE_UPDATE == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore raw downloads from the last run
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/raw
+            data/fastf1_cache
+          key: f1-data-${{ github.run_id }}
+          restore-keys: f1-data-
+      - name: Download, build and check
+        run: python -m src.run_all
+      - name: Keep the database from this run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f1-duckdb
+          path: data/f1.duckdb
+          retention-days: 14

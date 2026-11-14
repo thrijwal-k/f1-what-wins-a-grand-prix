@@ -1,0 +1,9 @@
+data/
+outputs/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.duckdb
+*.pkl
+*.zip
